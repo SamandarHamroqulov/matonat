@@ -1,15 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import LoginPage from './pages/auth/LoginPage'
-import DashboardPage from './pages/dashboard/DashboardPage'
+import { useRoutes } from 'react-router-dom'
+import { appRoutes } from './router'
 
 function App() {
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  )
+  return useRoutes(appRoutes)
 }
 
 export default App
