@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import Skeleton from '../../components/ui/Skeleton'
+import Table, { type TableColumn } from '../../components/ui/Table'
 import { useDashboard } from '../../hooks/useDashboard'
 import { formatMoney, formatPercentage } from '../../utils/format'
 
@@ -20,10 +24,35 @@ const statusLabelMap = {
 } as const
 
 const statusClassMap = {
-  PRESENT: 'bg-emerald-50 text-emerald-700',
-  ABSENT: 'bg-red-50 text-red-700',
-  LATE: 'bg-amber-50 text-amber-700',
+  PRESENT: 'success',
+  ABSENT: 'danger',
+  LATE: 'warning',
 } as const
+
+const attendanceColumns: TableColumn<{
+  id: string
+  studentName: string
+  groupName: string
+  status: 'PRESENT' | 'ABSENT' | 'LATE'
+  time: string
+}>[] = [
+  {
+    key: 'studentName',
+    label: "O'quvchi",
+    render: (row) => <span className="font-medium text-gray-900">{row.studentName}</span>,
+  },
+  { key: 'groupName', label: 'Guruh' },
+  {
+    key: 'status',
+    label: 'Holat',
+    render: (row) => (
+      <Badge variant={statusClassMap[row.status]}>
+        {statusLabelMap[row.status]}
+      </Badge>
+    ),
+  },
+  { key: 'time', label: 'Vaqt' },
+]
 
 function DashboardPage() {
   const { data, isLoading, error, refetch } = useDashboard()
@@ -33,13 +62,9 @@ function DashboardPage() {
       <section className="rounded-lg border border-gray-200 bg-white p-6">
         <h2 className="text-lg font-semibold text-primary-500">Dashboard yuklanmadi</h2>
         <p className="mt-2 text-sm leading-6 text-gray-500">{error}</p>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary-500 px-4 text-sm font-medium text-white transition hover:bg-primary-600"
-        >
+        <Button type="button" onClick={() => void refetch()} className="mt-5">
           Qayta urinib ko'rish
-        </button>
+        </Button>
       </section>
     )
   }
@@ -132,48 +157,23 @@ function DashboardPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full border-separate border-spacing-0">
-              <thead>
-                <tr className="text-left text-xs font-semibold uppercase tracking-[0.04em] text-gray-500">
-                  <th className="px-5 py-3">O'quvchi</th>
-                  <th className="px-5 py-3">Guruh</th>
-                  <th className="px-5 py-3">Holat</th>
-                  <th className="px-5 py-3">Vaqt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, index) => <TableRowSkeleton key={index} />)
-                ) : data && data.recentAttendance.length > 0 ? (
-                  data.recentAttendance.map((row, index) => (
-                    <tr key={row.id} className={index % 2 === 0 ? 'bg-gray-25' : 'bg-white'}>
-                      <td className="px-5 py-4 text-sm font-medium text-gray-900">{row.studentName}</td>
-                      <td className="px-5 py-4 text-sm text-gray-600">{row.groupName}</td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusClassMap[row.status]}`}
-                        >
-                          {statusLabelMap[row.status]}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-600">{row.time}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-10 text-center">
-                      <p className="text-sm font-medium text-gray-700">Bugun hali davomat kiritilmagan</p>
-                      <Link
-                        to="/attendance"
-                        className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-primary-500 px-4 text-sm font-medium text-white transition hover:bg-primary-600"
-                      >
-                        Davomatga o'tish
-                      </Link>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <Table
+              columns={attendanceColumns}
+              data={data?.recentAttendance ?? []}
+              loading={isLoading}
+              rowKey={(row) => row.id}
+              emptyState={
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-700">Bugun hali davomat kiritilmagan</p>
+                  <Link
+                    to="/attendance"
+                    className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-primary-500 px-4 text-sm font-medium text-white transition hover:bg-primary-600"
+                  >
+                    Davomatga o'tish
+                  </Link>
+                </div>
+              }
+            />
           </div>
         </div>
 
@@ -202,9 +202,9 @@ function DashboardPage() {
                         <p className="text-sm font-semibold text-gray-900">{item.groupName}</p>
                         <p className="mt-1 text-sm text-gray-500">{item.teacherName}</p>
                       </div>
-                      <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-600">
+                      <Badge variant="info">
                         {item.time}
-                      </span>
+                      </Badge>
                     </div>
                     <p className="mt-3 text-sm text-gray-600">Xona: {item.room}</p>
                   </div>
@@ -293,31 +293,12 @@ function StatCardSkeleton() {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex items-start justify-between">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-gray-100" />
-        <div className="h-4 w-14 animate-pulse rounded bg-gray-100" />
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-4 w-14" />
       </div>
-      <div className="mt-5 h-8 w-24 animate-pulse rounded bg-gray-100" />
-      <div className="mt-3 h-4 w-32 animate-pulse rounded bg-gray-100" />
+      <Skeleton className="mt-5 h-8 w-24" />
+      <Skeleton className="mt-3 h-4 w-32" />
     </div>
-  )
-}
-
-function TableRowSkeleton() {
-  return (
-    <tr>
-      <td className="px-5 py-4">
-        <div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-6 w-16 animate-pulse rounded-full bg-gray-100" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-4 w-14 animate-pulse rounded bg-gray-100" />
-      </td>
-    </tr>
   )
 }
 
@@ -326,12 +307,12 @@ function ScheduleSkeleton() {
     <div className="rounded-lg border border-gray-200 bg-gray-25 px-4 py-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
-          <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-24" />
         </div>
-        <div className="h-6 w-20 animate-pulse rounded-full bg-gray-100" />
+        <Skeleton className="h-6 w-20 rounded-full" />
       </div>
-      <div className="mt-3 h-4 w-32 animate-pulse rounded bg-gray-100" />
+      <Skeleton className="mt-3 h-4 w-32" />
     </div>
   )
 }

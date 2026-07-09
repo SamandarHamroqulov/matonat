@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { login } from '../../api/auth'
 import { useAuthStore } from '../../store/auth.store'
+import Button from '../../components/ui/Button'
+import Input from '../../components/ui/Input'
 
 const loginSchema = z.object({
   email: z
@@ -112,17 +114,14 @@ function LoginPage() {
             >
               Email
             </label>
-            <input
+            <Input
               id="email"
               type="email"
               autoComplete="email"
-              className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 transition placeholder:text-gray-400 hover:border-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15"
               placeholder="admin@matonat.uz"
+              error={errors.email?.message}
               {...register('email')}
             />
-            {errors.email ? (
-              <p className="mt-2 text-xs text-red-600">{errors.email.message}</p>
-            ) : null}
           </div>
 
           <div>
@@ -155,20 +154,9 @@ function LoginPage() {
             ) : null}
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary-500 px-4 text-sm font-medium text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-primary-500/70"
-          >
-            {isLoading ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
-                Yuklanmoqda...
-              </>
-            ) : (
-              'Kirish'
-            )}
-          </button>
+          <Button type="submit" loading={isLoading} className="w-full">
+            {isLoading ? 'Yuklanmoqda...' : 'Kirish'}
+          </Button>
         </form>
       </div>
     </main>
