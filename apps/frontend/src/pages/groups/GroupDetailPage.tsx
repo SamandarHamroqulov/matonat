@@ -119,10 +119,18 @@ function GroupDetailPage() {
           return
         }
 
-        setAttendanceStudents(response.data)
+        setAttendanceStudents(
+          response.students.map((student) => ({
+            studentId: student.studentId,
+            fullName: student.fullName,
+            phone: null,
+            parentPhone: '',
+            attendance: student.attendance?.status ?? null,
+          })),
+        )
         const nextStatus: Record<string, AttendanceStatus> = {}
-        response.data.forEach((item) => {
-          nextStatus[item.studentId] = item.attendance ?? 'PRESENT'
+        response.students.forEach((item) => {
+          nextStatus[item.studentId] = item.attendance?.status ?? 'PRESENT'
         })
         setStatusMap(nextStatus)
       } catch {
@@ -166,7 +174,15 @@ function GroupDetailPage() {
       })
       toast.success('Davomat saqlandi')
       const response = await getGroupAttendance(id, selectedDate)
-      setAttendanceStudents(response.data)
+      setAttendanceStudents(
+        response.students.map((student) => ({
+          studentId: student.studentId,
+          fullName: student.fullName,
+          phone: null,
+          parentPhone: '',
+          attendance: student.attendance?.status ?? null,
+        })),
+      )
     } catch {
       toast.error("Davomatni saqlab bo'lmadi")
     } finally {

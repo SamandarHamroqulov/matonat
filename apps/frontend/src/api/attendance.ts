@@ -51,7 +51,23 @@ export interface GroupAttendanceStudent {
 }
 
 export interface GroupAttendanceResponse {
-  data: GroupAttendanceStudent[]
+  groupId: string
+  groupName: string
+  date: string
+  students: Array<{
+    studentId: string
+    fullName: string
+    attendance: {
+      id: string
+      studentId: string
+      groupId: string
+      date: string
+      status: AttendanceStatus
+      note?: string | null
+      createdAt: string
+      updatedAt: string
+    } | null
+  }>
 }
 
 export const getAttendances = async (params: AttendanceQueryParams = {}) => {
@@ -67,9 +83,9 @@ export const bulkUpsertAttendance = async (payload: BulkAttendancePayload) => {
 }
 
 export const getGroupAttendance = async (groupId: string, date: string) => {
-  const response = await axiosInstance.get<GroupAttendanceResponse>(`/attendance/group/${groupId}`, {
-    params: { date },
-  })
+  const response = await axiosInstance.get<GroupAttendanceResponse>(
+    `/attendance/group/${groupId}/date/${encodeURIComponent(date)}`,
+  )
   return response.data
 }
 

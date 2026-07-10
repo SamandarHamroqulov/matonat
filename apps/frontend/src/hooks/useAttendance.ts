@@ -59,10 +59,18 @@ export const useAttendance = () => {
       setIsLoading(true)
       setError(null)
       const response = await getGroupAttendance(groupId, date)
-      setAttendanceStudents(response.data)
+      setAttendanceStudents(
+        response.students.map((student) => ({
+          studentId: student.studentId,
+          fullName: student.fullName,
+          phone: null,
+          parentPhone: '',
+          attendance: student.attendance?.status ?? null,
+        })),
+      )
       const nextMap: Record<string, AttendanceStatus> = {}
-      response.data.forEach((student) => {
-        nextMap[student.studentId] = student.attendance ?? 'PRESENT'
+      response.students.forEach((student) => {
+        nextMap[student.studentId] = student.attendance?.status ?? 'PRESENT'
       })
       setStatusMap(nextMap)
     } catch (requestError) {
