@@ -11,11 +11,12 @@ interface TableProps<T> {
   columns: TableColumn<T>[]
   data: T[]
   loading?: boolean
+  skeletonRows?: number
   emptyState?: ReactNode
   rowKey: (row: T) => string
 }
 
-function Table<T>({ columns, data, loading = false, emptyState, rowKey }: TableProps<T>) {
+function Table<T>({ columns, data, loading = false, skeletonRows = 6, emptyState, rowKey }: TableProps<T>) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border-separate border-spacing-0">
@@ -30,7 +31,7 @@ function Table<T>({ columns, data, loading = false, emptyState, rowKey }: TableP
         </thead>
         <tbody>
           {loading ? (
-            Array.from({ length: 6 }).map((_, rowIndex) => (
+            Array.from({ length: skeletonRows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 {columns.map((column) => (
                   <td key={String(column.key)} className="px-5 py-4">

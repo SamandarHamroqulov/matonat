@@ -30,13 +30,46 @@ export interface PaginatedResponse<T> {
 export interface Student {
   id: string
   fullName: string
-  phone?: string | null
+  phone: string | null
   parentPhone: string
-  birthDate?: string | null
-  groupId?: string | null
+  birthDate: string | null
+  groupId: string | null
   isActive: boolean
   createdAt: string
   updatedAt: string
+  group?: {
+    id: string
+    name: string
+  }
+}
+
+export interface CreateStudentDto {
+  fullName: string
+  phone?: string
+  parentPhone: string
+  birthDate?: string
+  groupId?: string
+}
+
+export interface UpdateStudentDto {
+  fullName?: string
+  phone?: string
+  parentPhone?: string
+  birthDate?: string
+  groupId?: string | null
+  isActive?: boolean
+}
+
+export interface ListMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+export interface PaginatedListResponse<T> {
+  data: T[]
+  meta: ListMeta
 }
 
 export interface Teacher {
