@@ -1,14 +1,10 @@
-import { IsString, IsOptional, IsDate, IsNumber, IsUUID, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateStudentDto {
   @IsString()
   @IsOptional()
-  firstName?: string;
-
-  @IsString()
-  @IsOptional()
-  lastName?: string;
+  fullName?: string;
 
   @IsString()
   @IsOptional()
@@ -23,15 +19,11 @@ export class UpdateStudentDto {
   @IsOptional()
   birthDate?: Date;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
-  groupId?: string;
+  groupId?: string | null;
 
-  @IsIn(['ACTIVE', 'INACTIVE', 'LEAVED'])
+  @IsBoolean()
   @IsOptional()
-  status?: string;
-
-  @IsNumber()
-  @IsOptional()
-  balance?: number;
+  isActive?: boolean;
 }

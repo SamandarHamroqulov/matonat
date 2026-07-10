@@ -94,6 +94,6 @@ export const markAttendance = async (payload: {
   date: string
   entries: Array<{ studentId: string; status: AttendanceStatus; note?: string }>
 }) => {
-  const response = await axiosInstance.post<{ count: number }>('/attendance/mark', payload)
+  const response = await axiosInstance.post<{ count: number }>('/attendance', payload)
   return response.data
 }

@@ -64,11 +64,13 @@ function App() {
     }
   }, [accessToken, logout, navigate, setAuth])
 
+  const routes = useRoutes(appRoutes)
+
   if (isInitializing) {
     return <SplashScreen variant="full" />
   }
 
-  return useRoutes(appRoutes)
+  return routes
 }
 
 export default App

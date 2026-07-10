@@ -101,13 +101,15 @@ export const useAttendance = () => {
       return
     }
 
+    const attendanceDate = new Date(date).toISOString()
+
     await markAttendance({
       groupId,
-      date,
+      date: attendanceDate,
       entries: attendanceStudents.map((student) => ({
         studentId: student.studentId,
         status: statusMap[student.studentId] ?? student.attendance ?? 'PRESENT',
-        note: '',
+        note: undefined,
       })),
     })
 

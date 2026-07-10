@@ -8,14 +8,18 @@ import { StudentQueryDto } from './dto/student-query.dto';
 export class StudentsService {
   constructor(private prisma: PrismaService) { }
 
+  async count() {
+    return this.prisma.student.count({ where: { isActive: true } });
+  }
+
   async create(createStudentDto: CreateStudentDto) {
-    const { firstName, lastName, parentPhone, ...rest } = createStudentDto;
-    
     return this.prisma.student.create({
       data: {
-        fullName: `${firstName} ${lastName}`.trim(),
-        parentPhone: parentPhone || '',
-        ...rest,
+        fullName: createStudentDto.fullName.trim(),
+        phone: createStudentDto.phone?.trim() ?? null,
+        parentPhone: createStudentDto.parentPhone.trim(),
+        birthDate: createStudentDto.birthDate ?? null,
+        groupId: createStudentDto.groupId ?? null,
       },
     });
   }
@@ -28,9 +32,9 @@ export class StudentsService {
 
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },
+        { parentPhone: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -76,25 +80,18 @@ export class StudentsService {
   async update(id: string, updateStudentDto: UpdateStudentDto) {
     const student = await this.findOne(id); // Check existence
 
-    const { firstName, lastName, ...rest } = updateStudentDto;
-    
-    let fullName: string | undefined = undefined;
-    if (firstName !== undefined || lastName !== undefined) {
-      const parts = student.fullName.split(' ');
-      const currentFirstName = parts[0] || '';
-      const currentLastName = parts.slice(1).join(' ') || '';
-      
-      const newFirstName = firstName !== undefined ? firstName : currentFirstName;
-      const newLastName = lastName !== undefined ? lastName : currentLastName;
-      
-      fullName = `${newFirstName} ${newLastName}`.trim();
-    }
-
     return this.prisma.student.update({
       where: { id },
       data: {
-        ...rest,
-        ...(fullName !== undefined && { fullName }),
+        fullName: updateStudentDto.fullName?.trim() ?? student.fullName,
+        phone: updateStudentDto.phone !== undefined ? updateStudentDto.phone.trim() : student.phone,
+        parentPhone: updateStudentDto.parentPhone?.trim() ?? student.parentPhone,
+        birthDate:
+          updateStudentDto.birthDate !== undefined ? updateStudentDto.birthDate : student.birthDate,
+        groupId:
+          updateStudentDto.groupId !== undefined ? updateStudentDto.groupId : student.groupId,
+        isActive:
+          updateStudentDto.isActive !== undefined ? updateStudentDto.isActive : student.isActive,
       },
     });
   }

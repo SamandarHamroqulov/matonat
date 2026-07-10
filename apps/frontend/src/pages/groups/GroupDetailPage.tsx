@@ -165,11 +165,11 @@ function GroupDetailPage() {
       setAttendanceSaving(true)
       await markAttendance({
         groupId: id,
-        date: selectedDate,
+        date: new Date(selectedDate).toISOString(),
         entries: attendanceStudents.map((student) => ({
           studentId: student.studentId,
           status: statusMap[student.studentId] ?? student.attendance ?? 'PRESENT',
-          note: '',
+          note: undefined,
         })),
       })
       toast.success('Davomat saqlandi')

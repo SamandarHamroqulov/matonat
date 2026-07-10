@@ -1,9 +1,9 @@
-import { IsUUID, IsEnum, IsOptional, IsString, IsDate, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsDate, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AttendanceStatus } from '@prisma/client';
 
 export class AttendanceEntryDto {
-  @IsUUID()
+  @IsString()
   studentId!: string;
 
   @IsEnum(AttendanceStatus)
@@ -15,7 +15,7 @@ export class AttendanceEntryDto {
 }
 
 export class MarkAttendanceDto {
-  @IsUUID()
+  @IsString()
   groupId!: string;
 
   @IsDate()
