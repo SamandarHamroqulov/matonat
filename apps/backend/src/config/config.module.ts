@@ -1,4 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
+import { validate } from './env.validation';
 
-@Module({})
+@Global()
+@Module({
+  imports: [
+    NestConfigModule.forRoot({
+      isGlobal: true,
+      validate,
+    }),
+  ],
+})
 export class ConfigModule {}

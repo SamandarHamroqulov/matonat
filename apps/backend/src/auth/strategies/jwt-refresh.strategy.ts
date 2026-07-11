@@ -29,22 +29,33 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     const tokens = await this.prisma.refreshToken.findMany({
       where: {
         userId: payload.sub,
-        isRevoked: false,
         expiresAt: { gt: new Date() },
       },
     });
 
-    let foundToken: any = null;
+    let foundToken: { id: string; isRevoked: boolean } | null = null;
     for (const token of tokens) {
       const isMatch = await bcrypt.compare(refreshToken, token.tokenHash);
       if (isMatch) {
-        foundToken = token;
+        foundToken = { id: token.id, isRevoked: token.isRevoked };
         break;
       }
     }
 
     if (!foundToken) {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (foundToken.isRevoked) {
+      await this.prisma.refreshToken.updateMany({
+        where: {
+          userId: payload.sub,
+        },
+        data: {
+          isRevoked: true,
+        },
+      });
+      throw new UnauthorizedException('Refresh token reused');
     }
 
     const user = await this.prisma.user.findUnique({

@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
@@ -7,6 +12,8 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -29,6 +36,16 @@ export class AuthService {
     if (!user.isActive) {
       throw new ForbiddenException('User is inactive');
     }
+
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        userId: user.id,
+        isRevoked: false,
+      },
+      data: {
+        isRevoked: true,
+      },
+    });
 
     const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = this.jwtService.sign(payload, {
@@ -68,22 +85,34 @@ export class AuthService {
     const tokens = await this.prisma.refreshToken.findMany({
       where: {
         userId,
-        isRevoked: false,
         expiresAt: { gt: new Date() },
       },
     });
 
-    let foundToken: any = null;
+    let foundToken: { id: string; isRevoked: boolean } | null = null;
     for (const token of tokens) {
       const isMatch = await bcrypt.compare(rawRefreshToken, token.tokenHash);
       if (isMatch) {
-        foundToken = token;
+        foundToken = { id: token.id, isRevoked: token.isRevoked };
         break;
       }
     }
 
     if (!foundToken) {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (foundToken.isRevoked) {
+      this.logger.warn(`Refresh token reuse detected for user ${userId}`);
+      await this.prisma.refreshToken.updateMany({
+        where: {
+          userId,
+        },
+        data: {
+          isRevoked: true,
+        },
+      });
+      throw new UnauthorizedException('Refresh token reused');
     }
 
     // Revoke old token
@@ -130,13 +159,14 @@ export class AuthService {
     const tokens = await this.prisma.refreshToken.findMany({
       where: {
         userId,
-        isRevoked: false,
+        expiresAt: { gt: new Date() },
       },
     });
 
     for (const token of tokens) {
       const isMatch = await bcrypt.compare(rawRefreshToken, token.tokenHash);
       if (isMatch) {
+        this.logger.log(`Refresh token revoked on logout for user ${userId}`);
         await this.prisma.refreshToken.update({
           where: { id: token.id },
           data: { isRevoked: true },

@@ -4,8 +4,8 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const superAdminEmail = 'admin@matonat.com';
-  const superAdminPassword = 'password123'; // Make sure to change in production
+  const superAdminEmail = 's4410206@gmail.com';
+  const superAdminPassword = 'samacoder0805'; // Make sure to change in production
 
   const existingAdmin = await prisma.user.findUnique({
     where: { email: superAdminEmail },

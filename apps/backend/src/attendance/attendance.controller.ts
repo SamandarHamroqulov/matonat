@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import type { AuthenticatedUser } from '../auth/authenticated-user.interface';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('attendance')
@@ -24,8 +25,8 @@ export class AttendanceController {
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.TEACHER)
   @Post()
-  mark(@Body() markAttendanceDto: MarkAttendanceDto, @Request() req: any) {
-    return this.attendanceService.mark(markAttendanceDto, req.user.sub);
+  mark(@Body() markAttendanceDto: MarkAttendanceDto, @Request() req: { user: AuthenticatedUser }) {
+    return this.attendanceService.mark(markAttendanceDto, req.user.id);
   }
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.TEACHER)

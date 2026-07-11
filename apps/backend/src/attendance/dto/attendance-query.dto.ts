@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, IsString, IsUUID, IsDate } from 'class-validator';
+import { IsOptional, IsInt, Min, IsString, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AttendanceQueryDto {
@@ -15,11 +15,11 @@ export class AttendanceQueryDto {
   limit?: number = 10;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   groupId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   studentId?: string;
 
   @IsOptional()

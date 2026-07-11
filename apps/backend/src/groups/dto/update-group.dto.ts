@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsInt, IsOptional, IsDate, IsBoolean, Min, Max } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsDate, IsBoolean, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateGroupDto {
@@ -6,11 +6,11 @@ export class UpdateGroupDto {
   @IsOptional()
   name?: string;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
   teacherId?: string;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
   courseId?: string;
 

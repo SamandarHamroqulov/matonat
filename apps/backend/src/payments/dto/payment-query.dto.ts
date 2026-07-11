@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, IsUUID, IsDate, IsEnum } from 'class-validator';
+import { IsOptional, IsInt, Min, IsUUID, IsDate, IsEnum, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
 
@@ -22,6 +22,10 @@ export class PaymentQueryDto {
   @IsOptional()
   @IsEnum(PaymentMethod)
   method?: PaymentMethod;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   @IsOptional()
   @IsDate()

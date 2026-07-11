@@ -35,18 +35,26 @@ export class PaymentsService {
   }
 
   async findAll(query: PaymentQueryDto) {
-    const { page = 1, limit = 10, studentId, method, startDate, endDate } = query;
+    const { page = 1, limit = 10, studentId, method, startDate, endDate, search } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
     if (studentId) where.studentId = studentId;
     if (method) where.method = method;
+    if (search) {
+      where.student = {
+        fullName: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      };
+    }
 
     if (startDate || endDate) {
-      where.paidAt = {};
-      if (startDate) where.paidAt.gte = new Date(startDate);
-      if (endDate) where.paidAt.lte = new Date(endDate);
+      where.month = {};
+      if (startDate) where.month.gte = new Date(startDate);
+      if (endDate) where.month.lte = new Date(endDate);
     }
 
     const [data, total] = await Promise.all([
@@ -58,7 +66,7 @@ export class PaymentsService {
           student: { select: { id: true, fullName: true } },
           receivedBy: { select: { id: true, fullName: true } },
         },
-        orderBy: { paidAt: 'desc' },
+        orderBy: { month: 'desc' },
       }),
       this.prisma.payment.count({ where }),
     ]);

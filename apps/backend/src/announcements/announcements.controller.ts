@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import type { AuthenticatedUser } from '../auth/authenticated-user.interface';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('announcements')
@@ -22,8 +23,11 @@ export class AnnouncementsController {
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @Post()
-  create(@Body() createAnnouncementDto: CreateAnnouncementDto, @Request() req: any) {
-    return this.announcementsService.create(createAnnouncementDto, req.user.sub);
+  create(
+    @Body() createAnnouncementDto: CreateAnnouncementDto,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    return this.announcementsService.create(createAnnouncementDto, req.user.id);
   }
 
   @Get()

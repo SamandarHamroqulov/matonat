@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import type { AuthenticatedUser } from '../auth/authenticated-user.interface';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('payments')
@@ -24,8 +25,8 @@ export class PaymentsController {
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto, @Request() req: any) {
-    return this.paymentsService.create(createPaymentDto, req.user.sub);
+  create(@Body() createPaymentDto: CreatePaymentDto, @Request() req: { user: AuthenticatedUser }) {
+    return this.paymentsService.create(createPaymentDto, req.user.id);
   }
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
@@ -35,15 +36,15 @@ export class PaymentsController {
   }
 
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentsService.findOne(id);
-  }
-
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @Get('student/:studentId')
   getStudentPayments(@Param('studentId') studentId: string) {
     return this.paymentsService.getStudentPayments(studentId);
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.paymentsService.findOne(id);
   }
 
   @Roles(Role.SUPER_ADMIN)

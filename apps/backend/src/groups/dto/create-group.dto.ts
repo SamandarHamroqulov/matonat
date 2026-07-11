@@ -1,14 +1,17 @@
-import { IsString, IsUUID, IsInt, IsOptional, IsDate, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, IsOptional, IsDate, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateGroupDto {
   @IsString()
+  @IsNotEmpty()
   name!: string;
 
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   teacherId!: string;
 
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   courseId!: string;
 
   @IsInt()
