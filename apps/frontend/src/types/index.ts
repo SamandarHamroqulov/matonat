@@ -12,6 +12,8 @@ export interface User {
   role: Role
   fullName: string
   phone?: string | null
+  avatar?: string | null
+  isActive?: boolean
 }
 
 export interface ApiResponse<T> {

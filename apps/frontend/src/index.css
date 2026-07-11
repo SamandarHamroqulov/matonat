@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    --color-primary: #1A3A6B;
+    --color-primary-dark: #0F2347;
+    --color-accent: #F59E0B;
+    --color-sidebar: #0F2347;
     color: #111827;
     background-color: #f8f9fb;
     font-family: 'Inter', system-ui, sans-serif;

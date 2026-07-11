@@ -1,3 +1,4 @@
+// src/components/guards/ProtectedRoute.tsx
 import { useEffect, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -11,10 +12,8 @@ interface ProtectedRouteProps {
 
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const location = useLocation()
-  const { isAuthenticated, user } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    user: state.user,
-  }))
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const user = useAuthStore((state) => state.user)
 
   const isAllowed = !allowedRoles || (user ? allowedRoles.includes(user.role) : false)
 

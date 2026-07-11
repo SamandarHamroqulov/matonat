@@ -59,11 +59,9 @@ const EyeIcon = ({ open }: { open: boolean }) => (
 function LoginPage() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
-  const { setAuth, setLoading, isLoading } = useAuthStore((state) => ({
-    setAuth: state.setAuth,
-    setLoading: state.setLoading,
-    isLoading: state.isLoading,
-  }))
+const setAuth = useAuthStore((state) => state.setAuth)
+const setLoading = useAuthStore((state) => state.setLoading)
+const isLoading = useAuthStore((state) => state.isLoading)
 
   const defaultValues = useMemo<LoginFormValues>(
     () => ({

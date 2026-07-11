@@ -8,10 +8,11 @@ interface ModalProps {
   title: string
   children: ReactNode
   footer?: ReactNode
+  className?: string
   onClose: () => void
 }
 
-function Modal({ isOpen, title, children, footer, onClose }: ModalProps) {
+function Modal({ isOpen, title, children, footer, className, onClose }: ModalProps) {
   useEffect(() => {
     if (!isOpen) {
       return undefined
@@ -39,7 +40,7 @@ function Modal({ isOpen, title, children, footer, onClose }: ModalProps) {
       role="dialog"
     >
       <div
-        className="w-full max-w-lg rounded-lg border border-gray-200 bg-white"
+        className={cn('w-full max-w-lg rounded-lg border border-gray-200 bg-white', className)}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">

@@ -20,6 +20,22 @@ const axiosInstance = axios.create({
   withCredentials: true,
 })
 
+export const getCookieValue = (name: string) => {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const match = document.cookie
+    .split('; ')
+    .find((part) => part.startsWith(`${encodeURIComponent(name)}=`))
+
+  if (!match) {
+    return null
+  }
+
+  return decodeURIComponent(match.slice(name.length + 1))
+}
+
 let isRefreshing = false
 let refreshSubscribers: Array<{
   resolve: (token: string) => void
@@ -56,6 +72,16 @@ axiosInstance.interceptors.request.use((config) => {
     const headers = (config.headers ?? {}) as AxiosRequestHeaders
     headers.Authorization = `Bearer ${token}`
     config.headers = headers
+  }
+
+  const method = config.method?.toUpperCase()
+  if (method && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfToken = getCookieValue('csrf_token')
+    if (csrfToken) {
+      const headers = (config.headers ?? {}) as AxiosRequestHeaders
+      headers['X-CSRF-Token'] = csrfToken
+      config.headers = headers
+    }
   }
 
   return config

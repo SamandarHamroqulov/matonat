@@ -9,7 +9,7 @@ export interface AttendanceRecord {
   groupId: string
   date: string
   status: AttendanceStatus
-  notes?: string | null
+  note?: string | null
   createdAt: string
   updatedAt: string
   student?: {
@@ -20,12 +20,17 @@ export interface AttendanceRecord {
     id: string
     name: string
   }
+  markedBy?: {
+    id: string
+    fullName: string
+  }
 }
 
 export interface AttendanceQueryParams {
   page?: number
   limit?: number
   groupId?: string
+  studentId?: string
   startDate?: string
   endDate?: string
 }
@@ -33,7 +38,7 @@ export interface AttendanceQueryParams {
 export interface BulkAttendanceItem {
   studentId: string
   status: AttendanceStatus
-  notes?: string
+  note?: string
 }
 
 export interface BulkAttendancePayload {

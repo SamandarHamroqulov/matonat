@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useRoutes } from 'react-router-dom'
 import axios from 'axios'
 import SplashScreen from './components/ui/SplashScreen'
+import { getCookieValue } from './api/axios'
 import { useAuthStore } from './store/auth.store'
 import type { User } from './types'
 import { appRoutes } from './router'
@@ -15,15 +16,16 @@ function App() {
 
   useEffect(() => {
     let isMounted = true
+    let timedOut = false
     const timeoutId = window.setTimeout(() => {
+      timedOut = true
       if (!isMounted) {
         return
       }
 
-      logout()
       setIsInitializing(false)
       navigate('/login', { replace: true })
-    }, 2000)
+    }, 8000)
 
     const bootstrapAuth = async () => {
       if (accessToken) {
@@ -38,16 +40,21 @@ function App() {
         const response = await axios.post<{ accessToken: string; user: User }>(
           `${import.meta.env.VITE_API_URL}/auth/refresh`,
           {},
-          { withCredentials: true },
+          {
+            withCredentials: true,
+            headers: getCookieValue('csrf_token')
+              ? { 'X-CSRF-Token': getCookieValue('csrf_token') as string }
+              : undefined,
+          },
         )
 
-        if (isMounted) {
+        if (isMounted && !timedOut) {
           window.clearTimeout(timeoutId)
           setAuth(response.data.user, response.data.accessToken)
           setIsInitializing(false)
         }
       } catch {
-        if (isMounted) {
+        if (isMounted && !timedOut) {
           window.clearTimeout(timeoutId)
           logout()
           setIsInitializing(false)

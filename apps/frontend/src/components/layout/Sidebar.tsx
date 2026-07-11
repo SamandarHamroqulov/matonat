@@ -1,5 +1,6 @@
 import { useMemo, type ReactElement } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import axiosInstance from '../../api/axios'
 import { useAuthStore } from '../../store/auth.store'
 import { ROLE, type Role } from '../../types'
 
@@ -55,6 +56,17 @@ const navigationItems: NavigationItem[] = [
         <path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
         <path d="M8 11h8" />
         <path d="M8 15h5" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Kurslar',
+    path: '/courses',
+    roles: [ROLE.SUPER_ADMIN, ROLE.ADMIN],
+    icon: (className = 'h-[18px] w-[18px]') => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+         <path d="M6 12v5c3 3 9 3 12 0v-5" />
       </svg>
     ),
   },
@@ -140,10 +152,14 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     return navigationItems.filter((item) => item.roles.includes(user.role))
   }, [user])
 
-  const handleLogout = () => {
-    logout()
-    onClose()
-    navigate('/login', { replace: true })
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout')
+    } finally {
+      logout()
+      onClose()
+      navigate('/login', { replace: true })
+    }
   }
 
   return (

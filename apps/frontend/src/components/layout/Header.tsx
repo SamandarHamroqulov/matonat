@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import axiosInstance from '../../api/axios'
 import { useAuthStore } from '../../store/auth.store'
 import { getPageTitle } from '../../router'
 
@@ -26,10 +27,14 @@ function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('mousedown', handleOutsideClick)
   }, [])
 
-  const handleLogout = () => {
-    logout()
-    setDropdownOpen(false)
-    navigate('/login', { replace: true })
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout')
+    } finally {
+      logout()
+      setDropdownOpen(false)
+      navigate('/login', { replace: true })
+    }
   }
 
   return (

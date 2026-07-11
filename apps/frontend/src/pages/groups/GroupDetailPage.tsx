@@ -7,9 +7,11 @@ import Skeleton from '../../components/ui/Skeleton'
 import Table, { type TableColumn } from '../../components/ui/Table'
 import { useGroup } from '../../hooks/useGroup'
 import {
+  getAttendances,
   getGroupAttendance,
   markAttendance,
   type AttendanceStatus,
+  type AttendanceRecord,
   type GroupAttendanceStudent,
 } from '../../api/attendance'
 import type { GroupSchedule } from '../../api/groups'
@@ -101,6 +103,8 @@ function GroupDetailPage() {
   const [attendanceLoading, setAttendanceLoading] = useState(false)
   const [attendanceSaving, setAttendanceSaving] = useState(false)
   const [statusMap, setStatusMap] = useState<Record<string, AttendanceStatus>>({})
+  const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   const groupSchedules = group?.schedules ?? []
 
@@ -150,6 +154,38 @@ function GroupDetailPage() {
       active = false
     }
   }, [activeTab, id, selectedDate])
+
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+
+    let active = true
+
+    const loadHistory = async () => {
+      try {
+        setHistoryLoading(true)
+        const response = await getAttendances({ groupId: id, page: 1, limit: 10 })
+        if (active) {
+          setAttendanceHistory(response.data)
+        }
+      } catch {
+        if (active) {
+          toast.error("Davomat tarixini yuklab bo'lmadi")
+        }
+      } finally {
+        if (active) {
+          setHistoryLoading(false)
+        }
+      }
+    }
+
+    void loadHistory()
+
+    return () => {
+      active = false
+    }
+  }, [id])
 
   const selectedStudents = useMemo(
     () => group?.students ?? [],
@@ -289,69 +325,115 @@ function GroupDetailPage() {
       ) : null}
 
       {activeTab === 'attendance' ? (
-        <section className="rounded-lg border border-gray-200 bg-white p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">Davomat</h2>
-              <p className="mt-1 text-sm text-gray-500">Sana tanlang va har bir o&apos;quvchi holatini belgilang.</p>
+        <section className="space-y-5">
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Davomat</h2>
+                <p className="mt-1 text-sm text-gray-500">Sana tanlang va har bir o&apos;quvchi holatini belgilang.</p>
+              </div>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => setSelectedDate(event.target.value)}
+                className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/15"
+              />
             </div>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(event) => setSelectedDate(event.target.value)}
-              className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/15"
-            />
+
+            <div className="mt-5 space-y-3">
+              {attendanceLoading ? (
+                Array.from({ length: Math.max(group.students.length, 4) }).map((_, index) => (
+                  <Skeleton key={index} className="h-14" />
+                ))
+              ) : attendanceStudents.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-gray-500">
+                  O&apos;quvchilar topilmadi
+                </div>
+              ) : (
+                attendanceStudents.map((student) => {
+                  const current = statusMap[student.studentId] ?? student.attendance ?? 'PRESENT'
+                  return (
+                    <div key={student.studentId} className="flex items-center justify-between gap-4 border-b border-gray-100 py-3">
+                      <div>
+                        <div className="font-medium text-gray-900">{student.fullName}</div>
+                        <div className="text-sm text-gray-500">{student.phone ?? '—'}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(Object.keys(attendanceLabels) as AttendanceStatus[]).map((status) => (
+                          <AttendanceButton
+                            key={status}
+                            active={current === status}
+                            status={status}
+                            label={attendanceLabels[status]}
+                            onClick={() =>
+                              setStatusMap((prev) => ({
+                                ...prev,
+                                [student.studentId]: status,
+                              }))
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="button"
+                loading={attendanceSaving}
+                disabled={attendanceStudents.length === 0}
+                onClick={() => void handleAttendanceSave()}
+              >
+                Saqlash
+              </Button>
+            </div>
           </div>
 
-          <div className="mt-5 space-y-3">
-            {attendanceLoading ? (
-              Array.from({ length: Math.max(group.students.length, 4) }).map((_, index) => (
-                <Skeleton key={index} className="h-14" />
-              ))
-            ) : attendanceStudents.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-gray-500">
-                O&apos;quvchilar topilmadi
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <h3 className="text-base font-semibold text-gray-900">Davomat tarixi</h3>
+            <p className="mt-1 text-sm text-gray-500">So&apos;nggi davomat yozuvlari</p>
+
+            {historyLoading ? (
+              <div className="mt-4 space-y-3">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-12" />
+                ))}
+              </div>
+            ) : attendanceHistory.length === 0 ? (
+              <div className="mt-4 rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                Davomat tarixi topilmadi
               </div>
             ) : (
-              attendanceStudents.map((student) => {
-                const current = statusMap[student.studentId] ?? student.attendance ?? 'PRESENT'
-                return (
-                  <div key={student.studentId} className="flex items-center justify-between gap-4 border-b border-gray-100 py-3">
-                    <div>
-                      <div className="font-medium text-gray-900">{student.fullName}</div>
-                      <div className="text-sm text-gray-500">{student.phone ?? '—'}</div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(Object.keys(attendanceLabels) as AttendanceStatus[]).map((status) => (
-                        <AttendanceButton
-                          key={status}
-                          active={current === status}
-                          status={status}
-                          label={attendanceLabels[status]}
-                          onClick={() =>
-                            setStatusMap((prev) => ({
-                              ...prev,
-                              [student.studentId]: status,
-                            }))
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )
-              })
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full border-separate border-spacing-0">
+                  <thead>
+                    <tr className="text-left text-xs font-semibold uppercase tracking-[0.04em] text-gray-500">
+                      <th className="px-4 py-3">Sana</th>
+                      <th className="px-4 py-3">O&apos;quvchi</th>
+                      <th className="px-4 py-3">Holat</th>
+                      <th className="px-4 py-3">Belgilagan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendanceHistory.map((record) => (
+                      <tr key={record.id} className="border-t border-gray-100">
+                        <td className="px-4 py-3 text-sm text-gray-600">{new Date(record.date).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{record.student?.fullName ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={record.status === 'PRESENT' ? 'success' : record.status === 'LATE' ? 'warning' : 'danger'}>
+                            {record.status === 'PRESENT' ? 'Keldi' : record.status === 'LATE' ? 'Kech' : 'Kelmadi'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{record.markedBy?.fullName ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
-
-          <div className="mt-6 flex justify-end">
-            <Button
-              type="button"
-              loading={attendanceSaving}
-              disabled={attendanceStudents.length === 0}
-              onClick={() => void handleAttendanceSave()}
-            >
-              Saqlash
-            </Button>
           </div>
         </section>
       ) : null}
